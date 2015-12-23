@@ -1,0 +1,5 @@
+create view Per as
+	extract regex /([a-z]+)([^a-z]+)/
+		on D.text
+		return group 0 as Per
+from Document D;
