@@ -43,6 +43,7 @@ void Parser::match(int i) {
 // aql_stmt -> create_stmt; | output_stmt;
 void Parser::aql_stmt() {
 	View newView;
+	pair<string, string> name;
 	switch (lookahead->tag) {
 	case CREATE:
 		newView = create_stmt();
@@ -51,7 +52,13 @@ void Parser::aql_stmt() {
 		break;
 
 	case OUTPUT:
-		output_stmt(); match(';');
+		name = output_stmt();
+		match(';');
+		if(name.second == "") {
+			findViewByName(name.first).print(name.first);
+		} else {
+			findViewByName(name.first).print(name.second);
+		}
 		break;
 
 	default:
@@ -77,7 +84,6 @@ View Parser::create_stmt() {
 vector<Column> Parser::view_stmt() {
 	switch (lookahead->tag) {
 	case SELECT:
-		match(SELECT);
 		return select_stmt();
 
 	case EXTRACT:
