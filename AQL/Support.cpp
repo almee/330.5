@@ -3,11 +3,16 @@
 extract_data::extract_data() {
 	reg = "";
 }
-extract_data::extract_data(string reg_, vector<pair<int, string> > group_) {
+extract_data::extract_data(string reg_) {
 	reg = reg_;
-	group = group_;
 }
-
+extract_data::extract_data(vector<Atom> atoms_) {
+	atoms = atoms_;
+}
+void extract_data::operator+=(const extract_data &other) {
+	atoms.insert(atoms.end(), other.atoms.begin(), other.atoms.end());
+	catchList.insert(catchList.end(), other.catchList.begin(), other.catchList.end());
+}
 //没有处理正则内的捕获
 vector<Span> getSpansByReg(string &reg, string &document) {
 	string content;

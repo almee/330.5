@@ -24,19 +24,20 @@ public:
 
 	// extract statement - regular
 	vector<Column> extract_stmt();
+
 	extract_data extract_spec();
 	extract_data regex_spec();
-	void column();
+	pair<string, string> column();
 	vector<pair<int, string> > name_spec();
 	vector<pair<int, string> > group_spec();
 	pair<int, string> single_group();
 
 	// extract statement - pattern
-	void pattern_spec();
-	void pattern_expr();
-	void pattern_pkg();
-	void atom();
-	void pattern_group();
+	extract_data pattern_spec();
+	extract_data pattern_expr();
+	extract_data pattern_pkg();
+	Atom atom();
+	extract_data pattern_group();
 
 	void program();
 	View findViewByName(string);
