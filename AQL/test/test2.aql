@@ -1,0 +1,6 @@
+create view Number as
+	select asd.bb as cc, asd.aa as dd
+	from gg asd;
+
+output view Number as haha;
+output view Number;

@@ -1,4 +1,6 @@
 #pragma once
+#include "SelectTemStr.h"
+#include "View.h"
 #include "Lexer.h"
 
 class Parser
@@ -6,26 +8,30 @@ class Parser
 public:
 	Parser(Lexer* l);
 	~Parser();
+
 	// AQL statement
 	void aql_stmt();
-	void create_stmt();
-	void view_stmt();
-	void output_stmt();
-	void alias();
+	View create_stmt();
+	vector<Column> view_stmt();
+	pair<string, string> output_stmt();
+	string alias();
+
 	// select statement
-	void select_stmt();
-	void select_list();
-	void select_item();
-	void from_list();
-	void from_item();
+	vector<Column> select_stmt();
+	vector<SelectTemStr> select_list();
+	SelectTemStr select_item();
+	map<string, string> from_list();
+	pair<string, string> from_item();
+
 	// extract statement - regular
 	void extract_stmt();
 	void extract_spec();
 	void regex_spec();
 	void column();
-	void name_spec();
-	void group_spec();
-	void single_group();
+	vector<pair<int, string> > name_spec();
+	vector<pair<int, string> > group_spec();
+	pair<int, string> single_group();
+
 	// extract statement - pattern
 	void pattern_spec();
 	void pattern_expr();
@@ -33,10 +39,13 @@ public:
 	void atom();
 	void pattern_group();
 
-	void program();
+	Token* getLookahead();
+	View findViewByName(string);
 private:
 	Lexer* lexer;
 	Token* lookahead;
 	void match(int i);
+	vector<View> viewSet;
 };
+
 

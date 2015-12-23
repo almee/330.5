@@ -3,8 +3,10 @@
 
 int main()
 {
-	Lexer* lex = new Lexer("test/test.aql");
+	Lexer* lex = new Lexer("test/test2.aql");
 	Parser parser(lex);
-	parser.program();
+	parser.aql_stmt();
+	parser.aql_stmt();
+	parser.aql_stmt();
 	system("pause");
 }
