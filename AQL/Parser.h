@@ -39,7 +39,7 @@ public:
 	void atom();
 	void pattern_group();
 
-	Token* getLookahead();
+	void program();
 	View findViewByName(string);
 private:
 	Lexer* lexer;

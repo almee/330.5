@@ -18,7 +18,7 @@ void Parser::program() {
 void Parser::match(int i) {
 	if (lookahead->tag == i) {
 		// 通过查看match了解匹配过程
-		if (lookahead->tag == NUM) {
+		/*if (lookahead->tag == NUM) {
 			cout << static_cast<Num*>(lookahead)->value << endl;
 		}
 		else if (lookahead->tag >= ID &&lookahead->tag <= TOKEN) {
@@ -26,7 +26,7 @@ void Parser::match(int i) {
 		}
 		else {
 			cout << (char)lookahead->tag << endl;
-		}
+		}*/
 		lookahead = lexer->scan();
 	}
 	else {
@@ -42,13 +42,18 @@ void Parser::match(int i) {
 
 // aql_stmt -> create_stmt; | output_stmt;
 void Parser::aql_stmt() {
+	View newView;
 	switch (lookahead->tag) {
 	case CREATE:
-		create_stmt(); match(';');
+		newView = create_stmt();
+		match(';');
+		viewSet.push_back(newView);
 		break;
+
 	case OUTPUT:
 		output_stmt(); match(';');
 		break;
+
 	default:
 		cout << "syntax error: line " << lexer->getline() << ": undefined AQL statement" << endl;
 		system("pause");
@@ -56,16 +61,25 @@ void Parser::aql_stmt() {
 }
 
 // create_stmt -> CREATE VIEW ID AS view_stmt
-void Parser::create_stmt() {
-	match(CREATE); match(VIEW); match(ID); match(AS); view_stmt();
+View Parser::create_stmt() {
+	string name;
+	vector<Column> data;
+	match(CREATE);
+	match(VIEW);
+	name = static_cast<Word*>(lookahead)->lexeme;
+	match(ID);
+	match(AS);
+	data = view_stmt();
+	return View(name, data);
 }
 
 // view_stmt -> select_stmt | extract_stmt
-void Parser::view_stmt() {
+vector<Column> Parser::view_stmt() {
 	switch (lookahead->tag) {
 	case SELECT:
-		select_stmt();
-		break;
+		match(SELECT);
+		return select_stmt();
+
 	case EXTRACT:
 		extract_stmt();
 		break;
@@ -76,15 +90,25 @@ void Parser::view_stmt() {
 }
 
 // output_stmt -> OUTPUT VIEM ID alias
-void Parser::output_stmt() {
-	match(OUTPUT); match(VIEW); match(ID); alias();
+pair<string, string> Parser::output_stmt() {
+	string viewName, nickName;
+	match(OUTPUT);
+	match(VIEW);
+	viewName = static_cast<Word*>(lookahead)->lexeme;
+	match(ID);
+	nickName = alias();
+	return pair<string, string>(viewName, nickName);
 }
 
 // alias ->AS ID | E
-void Parser::alias() {
+string Parser::alias() {
+	string result;
 	if (lookahead->tag == AS) {
-		match(AS); match(ID);
+		match(AS);
+		result = static_cast<Word*>(lookahead)->lexeme;
+		match(ID);
 	}
+	return result;
 }
 
 
@@ -93,36 +117,64 @@ void Parser::alias() {
 /*******************/
 
 // select_stmt -> SELECT select_list FROM from_list
-void Parser::select_stmt() {
-	match(SELECT); select_list(); match(FROM); from_list();
+vector<Column> Parser::select_stmt() {
+	vector<Column> result;
+	map<string, string> mapping;
+	vector<SelectTemStr> allNewCol;
+	match(SELECT);
+	allNewCol = select_list();
+	match(FROM);
+	mapping = from_list();
+	for (int i = 0; i < allNewCol.size(); i++) {
+		Column tmpCol(findViewByName(mapping[allNewCol[i].viewName]).findColumnByName(allNewCol[i].columnName));
+		tmpCol.setName(allNewCol[i].newName);
+		result.push_back(tmpCol);
+	}
+	return result;
 }
 
 // select_list -> select_item | select_list, select_item
-void Parser::select_list() {
-	select_item();
+vector<SelectTemStr> Parser::select_list() {
+	vector<SelectTemStr> allNewCol;
+	allNewCol.push_back(select_item());
 	while (lookahead->tag == ',') {
 		match(',');
-		select_item();
+		allNewCol.push_back(select_item());
 	}
+	return allNewCol;
 }
 
 // select_item -> ID.ID alias
-void Parser::select_item(){
-	match(ID); match('.'); match(ID); alias();
+SelectTemStr Parser::select_item(){
+	SelectTemStr newOne;
+	newOne.viewName = static_cast<Word*>(lookahead)->lexeme;
+	match(ID);
+	match('.');
+	newOne.columnName = static_cast<Word*>(lookahead)->lexeme;
+	match(ID);
+	newOne.newName = alias();
+	return newOne;
 }
 
 // from_list -> from_item | from_list, from_item
-void Parser::from_list() {
-	from_item();
+map<string, string> Parser::from_list() {
+	map<string, string> result;
+	result.insert(from_item());
 	while (lookahead->tag == ',') {
 		match(',');
-		from_item();
+		result.insert(from_item());
 	}
+	return result;
 }
 
 // from_item -> ID ID
-void Parser::from_item() {
-	match(ID); match(ID);
+pair<string, string> Parser::from_item() {
+	string realName, nickName;
+	realName = static_cast<Word*>(lookahead)->lexeme;
+	match(ID);
+	nickName = static_cast<Word*>(lookahead)->lexeme;
+	match(ID);
+	return pair<string, string>(nickName, realName);
 }
 
 
@@ -161,32 +213,49 @@ void Parser::column() {
 }
 
 // name_spec -> AS ID | RETURN group_spec
-void Parser::name_spec() {
+vector<pair<int, string> >  Parser::name_spec() {
+	string name;
+	vector<pair<int, string> > result;
 	switch (lookahead->tag){
 	case AS:
-		match(AS); match(ID);
+		match(AS);
+		name = static_cast<Word*>(lookahead)->lexeme;
+		match(ID);
+		result.push_back(pair<int, string>(0, name));
+		return result;
 		break;
 	case RETURN:
-		match(RETURN); group_spec();
+		match(RETURN);
+		return group_spec();
 		break;
 	default:
 		cout << "syntax error: line " << lexer->getline() << ": undefined name statement" << endl;
-		system("pause");
+		break;
 	}
 }
 
 // group_spec -> single_group | group_spec AND single_group
-void Parser::group_spec() {
-	single_group();
+vector<pair<int, string> > Parser::group_spec() {
+	vector<pair<int, string> > result;
+	result.push_back(single_group());
 	while (lookahead->tag == AND) {
 		match(AND);
-		single_group();
+		result.push_back(single_group());
 	}
+	return result;
 }
 
 // single_group -> GROUP NUM AS ID
-void Parser::single_group() {
-	match(GROUP); match(NUM); match(AS); match(ID);
+pair<int, string> Parser::single_group() {
+	int number;
+	string name;
+	match(GROUP);
+	number = static_cast<Num*>(lookahead)->value;
+	match(NUM);
+	match(AS);
+	name = static_cast<Word*>(lookahead)->lexeme;
+	match(ID);
+	return pair<int, string>(number, name);
 }
 
 
@@ -253,4 +322,12 @@ void Parser::atom() {
 // pattern_group -> (pattern_expr)
 void Parser::pattern_group() {
 	match('('); pattern_expr(); match(')');
+}
+
+
+View Parser::findViewByName(string name_) {
+	for (int i = 0; i < viewSet.size(); i++) {
+		if (viewSet[i].getName() == name_)
+			return viewSet[i];
+	}
 }
