@@ -27,6 +27,9 @@
     <ClCompile Include="View.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Support.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AQL.h">
@@ -44,7 +47,7 @@
     <ClInclude Include="View.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="SelectTemStr.h">
+    <ClInclude Include="Support.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

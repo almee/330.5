@@ -1,5 +1,4 @@
 #include "View.h"
-#include <sstream>
 
 string intToString(int data) {
 	stringstream dataString;

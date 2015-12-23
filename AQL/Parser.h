@@ -1,6 +1,5 @@
 #pragma once
-#include "SelectTemStr.h"
-#include "View.h"
+#include "Support.h"
 #include "Lexer.h"
 
 class Parser
@@ -24,9 +23,9 @@ public:
 	pair<string, string> from_item();
 
 	// extract statement - regular
-	void extract_stmt();
-	void extract_spec();
-	void regex_spec();
+	vector<Column> extract_stmt();
+	extract_data extract_spec();
+	extract_data regex_spec();
 	void column();
 	vector<pair<int, string> > name_spec();
 	vector<pair<int, string> > group_spec();
@@ -46,6 +45,7 @@ private:
 	Token* lookahead;
 	void match(int i);
 	vector<View> viewSet;
+	string document = "ab2c1def3g12ui";
 };
 
 
