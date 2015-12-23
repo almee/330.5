@@ -45,6 +45,9 @@ string Column::getName() {
 int Column::getWidth() {
 	return width;
 }
+int Column::getRow() {
+	return data.size();
+}
 void Column::setName(string name_) {
 	name = name_;
 }
@@ -63,12 +66,14 @@ Span Column::findSpanByIndex(int index) {
 
 
 View::View() {
+	row = 0;
 }
 View::~View() {
 }
 View::View(string name_, vector<Column> data_) {
 	name = name_;
 	data = data_;
+	row = data_[0].getRow();
 }
 string View::getName() {
 	return name;

@@ -7,5 +7,6 @@ int main()
 	parser.aql_stmt();
 	parser.aql_stmt();
 	parser.aql_stmt();
+	parser.aql_stmt();
 	system("pause");
 }

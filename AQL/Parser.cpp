@@ -87,8 +87,8 @@ vector<Column> Parser::view_stmt() {
 		return select_stmt();
 
 	case EXTRACT:
-		extract_stmt();
-		break;
+		return extract_stmt();
+
 	default:
 		cout << "syntax error: line " << lexer->getline() << ": undefined create statement" << endl;
 		system("pause");
@@ -189,16 +189,32 @@ pair<string, string> Parser::from_item() {
 /*******************************/
 
 // extract_stmt -> EXTRACT extract_spec FROM from_list
-void Parser::extract_stmt() {
-	match(EXTRACT); extract_spec(); match(FROM); from_list();
+vector<Column> Parser::extract_stmt() {
+	extract_data data;
+	vector<Column> result;
+	map<string, string> mapping;
+	match(EXTRACT);
+	data = extract_spec();
+	match(FROM);
+	mapping = from_list();
+
+	if (data.reg != "") {
+		//regular
+		vector<Span> spans = getSpansByReg(data.reg.substr(1, data.reg.size() - 2), document);
+		Column newColumn(data.group[0].second, spans);
+		result.push_back(newColumn);
+	} else {
+		//pattern
+	}
+
+	return result;
 }
 
 // extract_spec -> regex_spec | pattern_spec
-void Parser::extract_spec() {
+extract_data Parser::extract_spec() {
 	switch (lookahead->tag) {
 	case REGEX:
-		regex_spec();
-		break;
+		 return regex_spec();
 	case PATTERN:
 		pattern_spec();
 		break;
@@ -209,8 +225,16 @@ void Parser::extract_spec() {
 }
 
 // regex_spec -> REGEX REG ON column name_spec
-void Parser::regex_spec() {
-	match(REGEX); match(REG); match(ON); column(); name_spec();
+extract_data Parser::regex_spec() {
+	string reg;
+	vector<pair<int, string> > group;
+	match(REGEX);
+	reg = static_cast<Word*>(lookahead)->lexeme; 
+	match(REG);
+	match(ON);
+	column();
+	group = name_spec();
+	return extract_data(reg, group);
 }
 
 // column -> ID.ID

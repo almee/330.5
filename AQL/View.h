@@ -25,6 +25,7 @@ public:
 	void setName(string);
 	void setWidth(int);
 	int getWidth();
+	int getRow();
 	void insertSpan(Span);
 	Span findSpanByIndex(int);
 
