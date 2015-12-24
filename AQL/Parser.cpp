@@ -87,8 +87,8 @@ vector<Column> Parser::view_stmt() {
 		return select_stmt();
 
 	case EXTRACT:
-		extract_stmt();
-		break;
+		return extract_stmt();
+
 	default:
 		cout << "syntax error: line " << lexer->getline() << ": undefined create statement" << endl;
 		system("pause");
@@ -189,18 +189,34 @@ pair<string, string> Parser::from_item() {
 /*******************************/
 
 // extract_stmt -> EXTRACT extract_spec FROM from_list
-void Parser::extract_stmt() {
-	match(EXTRACT); extract_spec(); match(FROM); from_list();
+vector<Column> Parser::extract_stmt() {
+	extract_data data;
+	vector<Column> result;
+	map<string, string> mapping;
+	match(EXTRACT);
+	data = extract_spec();
+	match(FROM);
+	mapping = from_list();
+
+	if (data.reg != "") {
+		//regular
+		vector<Span> spans = getSpansByReg(data.reg.substr(1, data.reg.size() - 2), document);
+		Column newColumn(data.group[0].second, spans);
+		result.push_back(newColumn);
+	} else {
+		//pattern
+	}
+
+	return result;
 }
 
 // extract_spec -> regex_spec | pattern_spec
-void Parser::extract_spec() {
+extract_data Parser::extract_spec() {
 	switch (lookahead->tag) {
 	case REGEX:
-		regex_spec();
-		break;
+		 return regex_spec();
 	case PATTERN:
-		pattern_spec();
+		return pattern_spec();
 		break;
 	default:
 		cout << "syntax error: line " << lexer->getline() << ": undefined extract statement" << endl;
@@ -209,13 +225,27 @@ void Parser::extract_spec() {
 }
 
 // regex_spec -> REGEX REG ON column name_spec
-void Parser::regex_spec() {
-	match(REGEX); match(REG); match(ON); column(); name_spec();
+extract_data Parser::regex_spec() {
+	string reg;
+	vector<pair<int, string> > group;
+	match(REGEX);
+	reg = static_cast<Word*>(lookahead)->lexeme; 
+	match(REG);
+	match(ON);
+	column();
+	group = name_spec();
+	return extract_data(reg, group);
 }
 
 // column -> ID.ID
-void Parser::column() {
-	match(ID); match('.'); match(ID);
+pair<string, string> Parser::column() {
+	string viewName, columnName;
+	viewName = static_cast<Word*>(lookahead)->lexeme;
+	match(ID);
+	match('.'); 
+	columnName = static_cast<Word*>(lookahead)->lexeme;
+	match(ID);
+	return pair<string, string>(viewName, columnName);
 }
 
 // name_spec -> AS ID | RETURN group_spec
@@ -270,32 +300,50 @@ pair<int, string> Parser::single_group() {
 /*******************************/
 
 // pattern_spec -> PATTERN pattern_expr name_spec
-void Parser::pattern_spec() {
-	match(PATTERN); pattern_expr(); name_spec();
+extract_data Parser::pattern_spec() {
+	extract_data result;
+	match(PATTERN);
+	result += pattern_expr();
+	result.group = name_spec();
+	return result;
 }
 
 // pattern_expr -> pattern_pkg | pattern_expr pattern_pkg
-void Parser::pattern_expr() {
-	pattern_pkg();
+extract_data Parser::pattern_expr() {
+	extract_data result;
+	result += pattern_pkg();
 	while (lookahead->tag == '<' || lookahead->tag == REG || lookahead->tag == '(') {
-		pattern_pkg();
+		result += pattern_pkg();
 	}
+	return result;
 }
 
 // pattern_pkg -> atom | atom {NUM, NUM} | pattern_group
-void Parser::pattern_pkg() {
+extract_data Parser::pattern_pkg() {
+	int min, max;
+	vector<Atom> result;
 	switch (lookahead->tag) {
 	case '<':
-		atom();
+		result.push_back(atom());
 		if (lookahead->tag == '{') {
-			match('{'); match(NUM); match(','); match(NUM); match('}');
+			match('{');
+			min = static_cast<Num*>(lookahead)->value;
+			match(NUM);
+			match(',');
+			max = static_cast<Num*>(lookahead)->value;
+			match(NUM);
+			match('}');
+			result[0].min = min;
+			result[0].max = max;
 		}
+		return extract_data(result);
 		break;
 	case REG:
-		atom();
+		result.push_back(atom());
+		return extract_data(result);
 		break;
 	case '(':
-		pattern_group();
+		 return pattern_group();
 		break;
 	default:
 		cout << "syntax error: line " << lexer->getline() << ": undefined pattern statement" << endl;
@@ -304,30 +352,55 @@ void Parser::pattern_pkg() {
 }
 
 // atom -> <column> | <TOKEN> | REG
-void Parser::atom() {
+Atom Parser::atom() {
+	Atom result;
+	string reg;
 	switch (lookahead->tag) {
 	case '<':
 		match('<');
 		if (lookahead->tag == ID) {
-			column();
+			pair<string, string> twoStrings = column();
+			result.type = 0;
+			result.first = twoStrings.first;
+			result.second = twoStrings.second;
 		}
 		else {
 			match(TOKEN);
+			result.type = 1;
+			result.min = 1;
+			result.max = 1;
 		}
 		match('>');
 		break;
 	case REG:
+		reg = static_cast<Word*>(lookahead)->lexeme;
 		match(REG);
+		result.type = 0;
+		result.first = reg;
 		break;
 	default:
 		cout << "syntax error: line " << lexer->getline() << ": undefined atom statement" << endl;
 		system("pause");
 	}
+	return result;
 }
 
 // pattern_group -> (pattern_expr)
-void Parser::pattern_group() {
-	match('('); pattern_expr(); match(')');
+extract_data Parser::pattern_group() {
+	extract_data result;
+	int left, right;
+	match('(');
+	/*  问题是如何获得这个min的值呢?
+	**  声明一个初始值为0的变量,每执行一次atom加一
+	**  表示已经读过的atom的个数,则在atom中经过了这么多个
+	**  atom之后就是当前的atom??
+	*/
+	left = 0;
+	result = pattern_expr();
+	right = left + result.atoms.size();
+	result.catchList.insert(result.catchList.begin(), pair<int ,int>(min, max));
+	match(')');
+	return result;
 }
 
 
