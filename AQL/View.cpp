@@ -7,7 +7,9 @@ string intToString(int data) {
 	dataString >> str;
 	return str;
 }
+Span::Span() {
 
+}
 Span::Span(const Span &other) {
 	data = other.data;
 	begin = other.begin;

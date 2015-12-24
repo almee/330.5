@@ -9,7 +9,8 @@ struct Span {
 	string data;
 	int begin;
 	int end;
-	
+
+	Span();
 	Span(const Span &);
 	Span(string, int, int);
 };

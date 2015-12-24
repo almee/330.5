@@ -28,3 +28,36 @@ vector<Span> getSpansByReg(string &reg, string &document) {
 	}
 	return result;
 }
+
+
+vector<vector<pair<int, int>>>& pattern(vector<Atom> &atoms, int index, vector<vector<pair<int, int>>> &lastResult) {
+	Column thisColumn;
+	Span thisSpan;
+	Atom thisOne = atoms[index];
+	View jiaZhuangYouGeView;			//啧!!!!!!!!!!!!! viewSet放在parser里似乎不是一个很好的选择
+	vector<pair<int, int>> newPath;
+	vector<vector<pair<int, int>>> result;
+	switch (thisOne.type) {
+	case 0:
+		thisColumn = jiaZhuangYouGeView.findColumnByName(thisOne.second);
+		for (int i = 0; i < lastResult.size(); i++) {
+			int end = lastResult[i].at(lastResult[i].size() - 1).second;
+			for (int j = 0; j < thisColumn.getRow(); j++) {
+				thisSpan = thisColumn.findSpanByIndex(j);
+				if (end == thisSpan.begin) {
+					newPath = lastResult[i];
+					newPath.push_back(pair<int, int>(thisSpan.begin, thisSpan.end));
+					result.push_back(newPath);
+				}
+			}
+		}
+		break;
+
+	case 1:
+
+
+	default:
+		break;
+	}
+	return pattern(atoms, index + 1, result);
+}
