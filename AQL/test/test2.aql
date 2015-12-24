@@ -1,6 +1,2 @@
-create view Number as123
-	select asd.bb as cc, asd.aa as dd
-	from gg asd;
-
-output view Number as haha;
-output view Number;
+create a number 123.123
+123

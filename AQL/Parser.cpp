@@ -4,6 +4,20 @@ Parser::Parser(Lexer* l) {
 	lexer = l;
 	lookahead = lexer->scan();
 	document = "aaaa11111";
+	/*
+	Span a("123", 1, 2);
+	Span b("321", 5, 6);
+	vector<Span> span;
+	span.push_back(a);
+	span.push_back(b);
+	Column aa("aa", span);
+	Column bb("bb", span);
+	vector<Column> Col;
+	Col.push_back(aa);
+	Col.push_back(bb);
+	View gg("gg", Col);
+	viewSet.push_back(gg);
+	*/
 }
 
 Parser::~Parser()

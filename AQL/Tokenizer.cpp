@@ -6,7 +6,7 @@ Tokenizer::Tokenizer(string f) {
 		cout << "Could not find AQL file named: '" << f << "'" << endl;
 		exit(1);
 	}
-	line = 1; peek = ' ';
+	line = 1; peek = ' '; charPosition = -1;
 }
 
 Tokenizer::~Tokenizer() {
@@ -17,30 +17,52 @@ int Tokenizer::getline() {
 	return line;
 }
 
-Token* Tokenizer::scan() {
+TokenOfTokenizer* Tokenizer::scan() {
+	int begin = 0, end = 0;
 	// 忽略空格
 	for (;!file.eof(); file.get(peek)){
-		if (peek == ' ' || peek == '\t') continue;
-		else if (peek == '\n') line = line + 1;
+		if (peek == ' ' || peek == '\t') {
+			charPosition++;
+			continue;
+		}
+		else if (peek == '\n') {
+			charPosition++;
+			line = line + 1;
+		}
 		else break;
 	}
 	// 文本结束返回END
 	if (file.eof()) {
-		return new Token(END);
+		return new TokenOfTokenizer(END);
 	}
 
 	if (isdigit(peek) || isletter(peek)) {
 		string s;
+		begin = charPosition;
 		do {
 			s.append(1,peek);
+			charPosition++;
 		} while (file.get(peek) && (isdigit(peek) || isletter(peek)));
-		Word* w = new Word(ID, s);
-		return w;
+		end = charPosition;
+		TokenOfTokenizer* tot = new TokenOfTokenizer(s, begin, end);
+		return tot;
 	}
 	
-	Token* tok = new Token(peek);
+	begin = charPosition;
+	end = ++charPosition;
+	TokenOfTokenizer* tok = new TokenOfTokenizer(peek, begin, end);
 	peek = ' ';
 	return tok;
+}
+
+vector<TokenOfTokenizer*> Tokenizer::Tokenize() {
+	vector<TokenOfTokenizer*> tokenVector;
+	TokenOfTokenizer* tot = scan();
+	while(tot->getTag() != END) {
+		tokenVector.push_back(tot);
+		tot = scan();
+	}
+	return tokenVector;
 }
 
 bool Tokenizer::isdigit(char c) {
