@@ -27,6 +27,11 @@ Column::Column() {
 Column::~Column() {
 
 }
+Column::Column(string name_) {
+	width = 0;
+	name = name_;
+
+}
 Column::Column(string name_, vector<Span> data_) {
 	width = 0;
 	data = data_;

@@ -18,6 +18,7 @@ struct Span {
 class Column {
 public:
 	Column();
+	Column(string);
 	Column(const Column &);
 	Column(string, vector<Span>);
 	~Column();

@@ -5,7 +5,7 @@
 class Parser
 {
 public:
-	Parser(Lexer* l);
+	Parser(Lexer* l, string document_, vector<View> viewSet_, vector<TokenOfTokenizer> tokenSet_);
 	~Parser();
 
 	// AQL statement
@@ -28,8 +28,8 @@ public:
 	extract_data extract_spec();
 	extract_data regex_spec();
 	pair<string, string> column();
-	vector<pair<int, string> > name_spec();
-	vector<pair<int, string> > group_spec();
+	map<int, string> name_spec();
+	map<int, string> group_spec();
 	pair<int, string> single_group();
 
 	// extract statement - pattern
@@ -40,13 +40,12 @@ public:
 	extract_data pattern_group();
 
 	void program();
-	View findViewByName(string);
+
 private:
 	Lexer* lexer;
 	Token* lookahead;
 	void match(int i);
-	vector<View> viewSet;
-	string document;
+	Support support;
 };
 
 

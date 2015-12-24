@@ -1,9 +1,9 @@
 #include "Parser.h"
 
-Parser::Parser(Lexer* l) {
+Parser::Parser(Lexer* l, string document_, vector<View> viewSet_, vector<TokenOfTokenizer> tokenSet_) {
 	lexer = l;
 	lookahead = lexer->scan();
-	document = "aaaa11111";
+	support = Support(document_, viewSet_, tokenSet_);
 	/*
 	Span a("123", 1, 2);
 	Span b("321", 5, 6);
@@ -63,16 +63,16 @@ void Parser::aql_stmt() {
 	case CREATE:
 		newView = create_stmt();
 		match(';');
-		viewSet.push_back(newView);
+		support.insertView(newView);
 		break;
 
 	case OUTPUT:
 		name = output_stmt();
 		match(';');
 		if(name.second == "") {
-			findViewByName(name.first).print(name.first);
+			support.findViewByName(name.first).print(name.first);
 		} else {
-			findViewByName(name.first).print(name.second);
+			support.findViewByName(name.first).print(name.second);
 		}
 		break;
 
@@ -147,7 +147,7 @@ vector<Column> Parser::select_stmt() {
 	match(FROM);
 	mapping = from_list();
 	for (int i = 0; i < allNewCol.size(); i++) {
-		Column tmpCol(findViewByName(mapping[allNewCol[i].viewName]).findColumnByName(allNewCol[i].columnName));
+		Column tmpCol(support.findViewByName(mapping[allNewCol[i].viewName]).findColumnByName(allNewCol[i].columnName));
 		tmpCol.setName(allNewCol[i].newName);
 		result.push_back(tmpCol);
 	}
@@ -205,9 +205,13 @@ pair<string, string> Parser::from_item() {
 
 // extract_stmt -> EXTRACT extract_spec FROM from_list
 vector<Column> Parser::extract_stmt() {
+	int left, right;
 	extract_data data;
+	Column newColumn;
 	vector<Column> result;
 	map<string, string> mapping;
+	vector<pair<int, int>> thisPath;
+	vector<vector<pair<int, int>>> allPath;
 	match(EXTRACT);
 	data = extract_spec();
 	match(FROM);
@@ -215,11 +219,32 @@ vector<Column> Parser::extract_stmt() {
 
 	if (data.reg != "") {
 		//regular
-		vector<Span> spans = getSpansByReg(data.reg.substr(1, data.reg.size() - 2), document);
-		Column newColumn(data.group[0].second, spans);
+		vector<Span> spans = support.getSpansByReg(data.reg.substr(1, data.reg.size() - 2));
+		Column newColumn(data.group[0], spans);
 		result.push_back(newColumn);
 	} else {
 		//pattern
+		for (int i = 0; i < data.atoms.size(); i++)				//获取所有可能情况
+			allPath = support.pattern(data.atoms, i, allPath);
+
+		for (int i = 0; i <= data.catchList.size(); i++) {			//给每一个捕获创建列,还要补上一个整体的
+			result.push_back(Column(data.group[i]));
+		}
+
+		for (int i = 0; i < allPath.size(); i++) {					//逐条处理匹配
+			thisPath = allPath[i];
+
+			left = thisPath[0].first;								//完整的pattern
+			right = thisPath[thisPath.size() - 1].second;
+			result[0].insertSpan(Span(support.getContent(left, right), left, right));
+
+			for (int j = 0; j < data.catchList.size(); j++) {				//捕获处理
+				left = support.getBeginOfToken(data.catchList[j].first);					
+				right = support.getEndOfToken(data.catchList[j].second);
+				result[j + 1].insertSpan(Span(support.getContent(left, right), left, right));
+			}
+
+		}
 	}
 
 	return result;
@@ -242,7 +267,7 @@ extract_data Parser::extract_spec() {
 // regex_spec -> REGEX REG ON column name_spec
 extract_data Parser::regex_spec() {
 	string reg;
-	vector<pair<int, string> > group;
+	map<int, string> group;
 	match(REGEX);
 	reg = static_cast<Word*>(lookahead)->lexeme; 
 	match(REG);
@@ -264,15 +289,15 @@ pair<string, string> Parser::column() {
 }
 
 // name_spec -> AS ID | RETURN group_spec
-vector<pair<int, string> >  Parser::name_spec() {
+map<int, string>  Parser::name_spec() {
 	string name;
-	vector<pair<int, string> > result;
+	map<int, string> result;
 	switch (lookahead->tag){
 	case AS:
 		match(AS);
 		name = static_cast<Word*>(lookahead)->lexeme;
 		match(ID);
-		result.push_back(pair<int, string>(0, name));
+		result[0] = name;
 		return result;
 		break;
 	case RETURN:
@@ -286,12 +311,15 @@ vector<pair<int, string> >  Parser::name_spec() {
 }
 
 // group_spec -> single_group | group_spec AND single_group
-vector<pair<int, string> > Parser::group_spec() {
-	vector<pair<int, string> > result;
-	result.push_back(single_group());
+map<int, string> Parser::group_spec() {
+	map<int, string> result;
+	pair<int, string> data;
+	data = single_group();
+	result[data.first] = data.second;
 	while (lookahead->tag == AND) {
 		match(AND);
-		result.push_back(single_group());
+		data = single_group();
+		result[data.first] = data.second;
 	}
 	return result;
 }
@@ -370,6 +398,7 @@ extract_data Parser::pattern_pkg() {
 Atom Parser::atom() {
 	Atom result;
 	string reg;
+	support.addAtomIndex();
 	switch (lookahead->tag) {
 	case '<':
 		match('<');
@@ -410,7 +439,7 @@ extract_data Parser::pattern_group() {
 	**  表示已经读过的atom的个数,则在atom中经过了这么多个
 	**  atom之后就是当前的atom??
 	*/
-	left = 0;
+	left = support.getAtomIndex();
 	result = pattern_expr();
 	right = left + result.atoms.size();
 	result.catchList.insert(result.catchList.begin(), pair<int, int>(left, right));
@@ -419,9 +448,3 @@ extract_data Parser::pattern_group() {
 }
 
 
-View Parser::findViewByName(string name_) {
-	for (int i = 0; i < viewSet.size(); i++) {
-		if (viewSet[i].getName() == name_)
-			return viewSet[i];
-	}
-}

@@ -21,18 +21,35 @@ struct extract_data{
 
 	vector<Atom> atoms;
 	vector<pair<int, int> > catchList;
-	vector<pair<int, string> > group;
+	map<int, string> group;
 
 	void operator += (const extract_data &);
 	extract_data();
-	extract_data(string, vector<pair<int, string> >);
+	extract_data(string, map<int, string>);
 	extract_data(vector<Atom>);
 };
 
-vector<Span> getSpansByReg(string&, string&);
-
-int getTokenIndexByEnd(vector<TokenOfTokenizer>&, int);
-
-vector<pair<int, int> > getAllPossibleTokenMatch(vector<TokenOfTokenizer>&, int, int, int);
-
-vector<Column> getColumnsByPattern(vector<pair<int, int> >&, vector<pair<int, int> >&);
+class Support {
+public:
+	Support();
+	Support(string, vector<View>, vector<TokenOfTokenizer>);
+	vector<Span> getSpansByReg(string&);
+	int getTokenIndexByEnd(int);
+	vector<pair<int, int> > getAllPossibleTokenMatch(int, int, int);
+	vector<Column> getColumnsByPattern(vector<pair<int, int> >&, vector<pair<int, int> >&);
+	vector<vector<pair<int, int>>> pattern(vector<Atom>&, int, vector<vector<pair<int, int>>>&);
+	View findViewByName(string);
+	int getViewNum();
+	void insertView(View);
+	View getViewByNum(int);
+	void addAtomIndex();
+	int getAtomIndex();
+	string getContent(int, int);
+	int getBeginOfToken(int);
+	int getEndOfToken(int);
+private:
+	int atomIndex;
+	string document;
+	vector<View> viewSet;
+	vector<TokenOfTokenizer> tokenSet;
+};
