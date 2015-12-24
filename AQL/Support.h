@@ -1,5 +1,6 @@
 #pragma once
 #include "View.h"
+#include "Tokenizer.h"
 using namespace std;
 
 struct SelectTemStr{
@@ -28,4 +29,10 @@ struct extract_data{
 	extract_data(vector<Atom>);
 };
 
-vector<Span> getSpansByReg(string &, string &);
+vector<Span> getSpansByReg(string&, string&);
+
+int getTokenIndexByEnd(vector<TokenOfTokenizer>&, int);
+
+vector<pair<int, int> > getAllPossibleTokenMatch(vector<TokenOfTokenizer>&, int, int, int);
+
+vector<Column> getColumnsByPattern(vector<pair<int, int> >&, vector<pair<int, int> >&);
