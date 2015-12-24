@@ -46,6 +46,7 @@ private:
 	Token* lookahead;
 	void match(int i);
 	vector<View> viewSet;
+	string document = "aaaa11111";
 };
 
 

@@ -3,8 +3,9 @@
 extract_data::extract_data() {
 	reg = "";
 }
-extract_data::extract_data(string reg_) {
+extract_data::extract_data(string reg_, vector<pair<int, string> > group_) {
 	reg = reg_;
+	group = group_;
 }
 extract_data::extract_data(vector<Atom> atoms_) {
 	atoms = atoms_;

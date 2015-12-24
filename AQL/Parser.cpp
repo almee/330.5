@@ -398,7 +398,7 @@ extract_data Parser::pattern_group() {
 	left = 0;
 	result = pattern_expr();
 	right = left + result.atoms.size();
-	result.catchList.insert(result.catchList.begin(), pair<int ,int>(min, max));
+	result.catchList.insert(result.catchList.begin(), pair<int, int>(left, right));
 	match(')');
 	return result;
 }

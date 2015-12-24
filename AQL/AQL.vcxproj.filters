@@ -30,9 +30,6 @@
     <ClCompile Include="Support.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Tokenizer.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AQL.h">
@@ -51,9 +48,6 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Support.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Tokenizer.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
