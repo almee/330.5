@@ -1,4 +1,4 @@
-create view Number as
+create view Number as123
 	select asd.bb as cc, asd.aa as dd
 	from gg asd;
 

@@ -3,6 +3,7 @@
 Parser::Parser(Lexer* l) {
 	lexer = l;
 	lookahead = lexer->scan();
+	document = "aaaa11111";
 }
 
 Parser::~Parser()

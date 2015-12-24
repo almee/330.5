@@ -19,7 +19,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v110</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -82,6 +82,7 @@
     <ClCompile Include="Lexer.cpp" />
     <ClCompile Include="Parser.cpp" />
     <ClCompile Include="Support.cpp" />
+    <ClCompile Include="Tokenizer.cpp" />
     <ClCompile Include="View.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -90,6 +91,7 @@
     <ClInclude Include="Parser.h" />
     <ClInclude Include="regex.h" />
     <ClInclude Include="Support.h" />
+    <ClInclude Include="Tokenizer.h" />
     <ClInclude Include="View.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
