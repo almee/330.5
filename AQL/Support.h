@@ -32,18 +32,20 @@ struct extract_data{
 class Support {
 public:
 	Support();
-	Support(string, vector<View>, vector<Terms>);
+	Support(string, vector<Terms>);
 	vector<Span> getSpansByReg(string&);
+	int getTokenIndexByBegin(int);
 	int getTokenIndexByEnd(int);
 	vector<pair<int, int> > getAllPossibleTokenMatch(int, int, int);
 	vector<Column> getColumnsByPattern(vector<pair<int, int> >&, vector<pair<int, int> >&);
-	vector<vector<pair<int, int>>> pattern(vector<Atom>&, int, vector<vector<pair<int, int>>>&);
+	vector<vector<pair<int, int>>> pattern(vector<Atom>&, int, vector<vector<pair<int, int>>>&, map<string, string>&);
 	View findViewByName(string);
 	int getViewNum();
 	void insertView(View);
 	View getViewByNum(int);
 	void addAtomIndex();
 	int getAtomIndex();
+	void resetAtomIndex();
 	string getContent(int, int);
 	int getBeginOfToken(int);
 	int getEndOfToken(int);

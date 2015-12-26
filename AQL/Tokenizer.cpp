@@ -8,7 +8,6 @@ Tokenizer::Tokenizer(string f) {
 	}
 	line = 1; peek = ' '; lastPosition = 0;
 	fileString = fileToString();
-	cout << fileString << endl;
 }
 
 Tokenizer::~Tokenizer() {
@@ -65,6 +64,10 @@ vector<Terms> Tokenizer::tokenize() {
 		tms = scan();
 	}
 	return tokenVector;
+}
+
+string Tokenizer::getFileString() {
+	return fileString;
 }
 
 string Tokenizer::fileToString() {

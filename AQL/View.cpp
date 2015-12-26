@@ -165,6 +165,6 @@ void View::print(string name) {
 	}
 	cout << endl;
 
-	cout << rowNum << " rows in set" << endl;
+	cout << rowNum << " rows in set" << endl << endl;
 	
 }

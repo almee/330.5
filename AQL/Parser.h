@@ -5,7 +5,7 @@
 class Parser
 {
 public:
-	Parser(Lexer* l, string document_, vector<View> viewSet_, vector<Terms> tokenSet_);
+	Parser(Lexer* l, vector<Terms> tokenSet_, string document_);
 	~Parser();
 
 	// AQL statement

@@ -1,23 +1,9 @@
 #include "Parser.h"
 
-Parser::Parser(Lexer* l, string document_, vector<View> viewSet_, vector<Terms> tokenSet_) {
+Parser::Parser(Lexer* l, vector<Terms> tokenSet_, string document_) {
 	lexer = l;
 	lookahead = lexer->scan();
-	support = Support(document_, viewSet_, tokenSet_);
-	/*
-	Span a("123", 1, 2);
-	Span b("321", 5, 6);
-	vector<Span> span;
-	span.push_back(a);
-	span.push_back(b);
-	Column aa("aa", span);
-	Column bb("bb", span);
-	vector<Column> Col;
-	Col.push_back(aa);
-	Col.push_back(bb);
-	View gg("gg", Col);
-	viewSet.push_back(gg);
-	*/
+	support = Support(document_, tokenSet_);
 }
 
 Parser::~Parser()
@@ -26,6 +12,7 @@ Parser::~Parser()
 
 void Parser::program() {
 	while (lookahead->tag != END) {
+		support.resetAtomIndex();
 		aql_stmt();
 	}
 }
@@ -225,7 +212,7 @@ vector<Column> Parser::extract_stmt() {
 	} else {
 		//pattern
 		for (int i = 0; i < data.atoms.size(); i++)				//获取所有可能情况
-			allPath = support.pattern(data.atoms, i, allPath);
+			allPath = support.pattern(data.atoms, i, allPath, mapping);
 
 		for (int i = 0; i <= data.catchList.size(); i++) {			//给每一个捕获创建列,还要补上一个整体的
 			result.push_back(Column(data.group[i]));
@@ -239,8 +226,8 @@ vector<Column> Parser::extract_stmt() {
 			result[0].insertSpan(Span(support.getContent(left, right), left, right));
 
 			for (int j = 0; j < data.catchList.size(); j++) {				//捕获处理
-				left = support.getBeginOfToken(data.catchList[j].first);					
-				right = support.getEndOfToken(data.catchList[j].second);
+				left = thisPath[data.catchList[j].first].first;					
+				right = thisPath[data.catchList[j].first].second;
 				result[j + 1].insertSpan(Span(support.getContent(left, right), left, right));
 			}
 
@@ -419,7 +406,7 @@ Atom Parser::atom() {
 	case REG:
 		reg = static_cast<Word*>(lookahead)->lexeme;
 		match(REG);
-		result.type = 0;
+		result.type = 2;
 		result.first = reg;
 		break;
 	default:

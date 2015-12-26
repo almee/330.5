@@ -19,12 +19,11 @@ void extract_data::operator+=(const extract_data &other) {
 
 
 Support::Support() {
-	atomIndex = -1;
+	atomIndex = 0;
 }
-Support::Support(string document_, vector<View> viewSet_, vector<Terms> tokenSet_) {
-	atomIndex = -1;
+Support::Support(string document_, vector<Terms> tokenSet_) {
+	atomIndex = 0;
 	document = document_;
-	viewSet = viewSet_;
 	tokenSet = tokenSet_;
 }
 void Support::addAtomIndex() {
@@ -46,6 +45,14 @@ vector<Span> Support::getSpansByReg(string &reg) {
 	}
 	return result;
 }
+int Support::getTokenIndexByBegin(int end) {
+	for (int i = 0; i < tokenSet.size(); i++) {
+		if (end == tokenSet[i].begin)
+			return i;
+	}
+	return 0;
+
+}
 int Support::getTokenIndexByEnd(int end) {
 	for (int i = 0; i < tokenSet.size(); i++) {
 		if (end == tokenSet[i].end)
@@ -57,7 +64,7 @@ int Support::getTokenIndexByEnd(int end) {
 vector<pair<int, int> > Support::getAllPossibleTokenMatch(int nowIndex, int min, int max) {
 	int left = tokenSet[nowIndex].end;
 	vector<pair<int, int>> result;
-	for (int offset = min; offset <= max; offset++) {
+	for (int offset = min; offset <= max && (nowIndex + offset < tokenSet.size()); offset++) {
 		result.push_back(pair<int, int>(left, tokenSet[nowIndex + offset].end));
 	}
 	return result;
@@ -78,7 +85,7 @@ View Support::findViewByName(string name_) {
 	}
 }
 string Support::getContent(int left, int right) {
-	return document.substr(left, right);
+	return document.substr(left, right - left);
 }
 int Support::getBeginOfToken(int index) {
 	return tokenSet[index].begin;
@@ -86,7 +93,7 @@ int Support::getBeginOfToken(int index) {
 int Support::getEndOfToken(int index) {
 	return tokenSet[index].end;
 }
-vector<vector<pair<int, int>>> Support::pattern(vector<Atom> &atoms, int index, vector<vector<pair<int, int>>> &lastResult) {
+vector<vector<pair<int, int>>> Support::pattern(vector<Atom> &atoms, int index, vector<vector<pair<int, int>>> &lastResult, map<string, string> &mapping) {
 	Atom thisOne = atoms[index];
 
 	int lastEnd;
@@ -99,16 +106,26 @@ vector<vector<pair<int, int>>> Support::pattern(vector<Atom> &atoms, int index, 
 
 	switch (thisOne.type) {
 	case 0:
-		thisColumn = findViewByName(thisOne.first).findColumnByName(thisOne.second);
+		thisColumn = findViewByName(mapping[thisOne.first]).findColumnByName(thisOne.second);
 		for (int i = 0; i < lastResult.size(); i++) {
 			lastEnd = lastResult[i].at(lastResult[i].size() - 1).second;
+			lastEnd = this->getTokenIndexByEnd(lastEnd);
 			for (int j = 0; j < thisColumn.getRow(); j++) {
 				thisSpan = thisColumn.findSpanByIndex(j);
-				if (lastEnd == thisSpan.begin) {
+				int a = this->getTokenIndexByBegin(thisSpan.begin);
+				if (lastEnd == this->getTokenIndexByBegin(thisSpan.begin) - 1) {
 					newPath = lastResult[i];
 					newPath.push_back(pair<int, int>(thisSpan.begin, thisSpan.end));
 					result.push_back(newPath);
 				}
+			}
+		}
+		if (index == 0) {
+			for (int j = 0; j < thisColumn.getRow(); j++) {
+				thisSpan = thisColumn.findSpanByIndex(j);
+				newPath.push_back(pair<int, int>(thisSpan.begin, thisSpan.end));
+				result.push_back(newPath);
+				newPath.clear();
 			}
 		}
 		break;
@@ -126,16 +143,25 @@ vector<vector<pair<int, int>>> Support::pattern(vector<Atom> &atoms, int index, 
 		break;
 
 	case 2:
-		thisSpans = getSpansByReg(thisOne.first);
+		thisSpans = getSpansByReg(thisOne.first.substr(1, thisOne.first.size() - 2));
 		for (int i = 0; i < lastResult.size(); i++) {
-			int end = lastResult[i].at(lastResult[i].size() - 1).second;
+			lastEnd = lastResult[i].at(lastResult[i].size() - 1).second;
+			lastEnd = this->getTokenIndexByEnd(lastEnd);
 			for (int j = 0; j < thisSpans.size(); j++) {
 				thisSpan = thisSpans[j];
-				if (end == thisSpan.begin) {
+				int a = this->getTokenIndexByBegin(thisSpan.begin);
+				if (lastEnd == this->getTokenIndexByBegin(thisSpan.begin) - 1) {
 					newPath = lastResult[i];
 					newPath.push_back(pair<int, int>(thisSpan.begin, thisSpan.end));
 					result.push_back(newPath);
 				}
+			}
+		}
+		if (index == 0) {
+			for (int j = 0; j < thisSpans.size(); j++) {
+				newPath.push_back(pair<int, int>(thisSpans[j].begin, thisSpans[j].end));
+				result.push_back(newPath);
+				newPath.clear();
 			}
 		}
 		break;
@@ -143,6 +169,10 @@ vector<vector<pair<int, int>>> Support::pattern(vector<Atom> &atoms, int index, 
 	default:
 		break;
 	}
+	
 	return result;
 }
 
+void Support::resetAtomIndex() {
+	atomIndex = 0;
+}
