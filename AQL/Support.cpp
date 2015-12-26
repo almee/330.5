@@ -21,7 +21,7 @@ void extract_data::operator+=(const extract_data &other) {
 Support::Support() {
 	atomIndex = -1;
 }
-Support::Support(string document_, vector<View> viewSet_, vector<TokenOfTokenizer> tokenSet_) {
+Support::Support(string document_, vector<View> viewSet_, vector<Terms> tokenSet_) {
 	atomIndex = -1;
 	document = document_;
 	viewSet = viewSet_;

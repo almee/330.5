@@ -5,10 +5,10 @@ int main()
 	Lexer* lex = new Lexer("test/test3.aql");
 	
 	Tokenizer* tokenizer = new Tokenizer("test/test2.aql");
-	vector<TokenOfTokenizer*> totVector;
-	totVector = tokenizer->Tokenize();
+	vector<Terms> totVector;
+	totVector = tokenizer->tokenize();
 	for(int i = 0; i < totVector.size(); i++) {
-		cout << totVector[i]->lexeme << "(" << totVector[i]->begin << "," << totVector[i]->end << ")" << endl;
+		cout << totVector[i].lexeme << "(" << totVector[i].begin << "," << totVector[i].end << ")" << endl;
 	}
 	
 	system("pause");

@@ -32,7 +32,7 @@ struct extract_data{
 class Support {
 public:
 	Support();
-	Support(string, vector<View>, vector<TokenOfTokenizer>);
+	Support(string, vector<View>, vector<Terms>);
 	vector<Span> getSpansByReg(string&);
 	int getTokenIndexByEnd(int);
 	vector<pair<int, int> > getAllPossibleTokenMatch(int, int, int);
@@ -51,5 +51,5 @@ private:
 	int atomIndex;
 	string document;
 	vector<View> viewSet;
-	vector<TokenOfTokenizer> tokenSet;
+	vector<Terms> tokenSet;
 };

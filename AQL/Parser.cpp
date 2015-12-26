@@ -1,6 +1,6 @@
 #include "Parser.h"
 
-Parser::Parser(Lexer* l, string document_, vector<View> viewSet_, vector<TokenOfTokenizer> tokenSet_) {
+Parser::Parser(Lexer* l, string document_, vector<View> viewSet_, vector<Terms> tokenSet_) {
 	lexer = l;
 	lookahead = lexer->scan();
 	support = Support(document_, viewSet_, tokenSet_);

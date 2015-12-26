@@ -6,7 +6,9 @@ Tokenizer::Tokenizer(string f) {
 		cout << "Could not find AQL file named: '" << f << "'" << endl;
 		exit(1);
 	}
-	line = 1; peek = ' '; charPosition = -1;
+	line = 1; peek = ' '; lastPosition = 0;
+	fileString = fileToString();
+	cout << fileString << endl;
 }
 
 Tokenizer::~Tokenizer() {
@@ -17,52 +19,63 @@ int Tokenizer::getline() {
 	return line;
 }
 
-TokenOfTokenizer* Tokenizer::scan() {
+Terms Tokenizer::scan() {
 	int begin = 0, end = 0;
 	// 忽略空格
-	for (;!file.eof(); file.get(peek)){
+	for (int i = lastPosition; i < fileString.length(); i++){
+		peek = fileString[i];
 		if (peek == ' ' || peek == '\t') {
-			charPosition++;
+			lastPosition = i;
 			continue;
 		}
 		else if (peek == '\n') {
-			charPosition++;
+			lastPosition = i;
 			line = line + 1;
 		}
-		else break;
+		else if (isdigit(peek) || isletter(peek)) {
+			string s;
+			begin = i;
+			do {
+				s.append(1,peek);
+				i++;
+				peek = fileString[i];
+			} while (isdigit(peek) || isletter(peek));
+			end = i;
+			Terms tms(s, begin, end);
+			lastPosition = i;
+			return tms;
+		} else {
+			begin = i;
+			end = ++i;
+			Terms tms(peek, begin, end);
+			peek = ' ';
+			lastPosition = i;
+			return tms;
+		}
 	}
 	// 文本结束返回END
-	if (file.eof()) {
-		return new TokenOfTokenizer(END);
-	}
-
-	if (isdigit(peek) || isletter(peek)) {
-		string s;
-		begin = charPosition;
-		do {
-			s.append(1,peek);
-			charPosition++;
-		} while (file.get(peek) && (isdigit(peek) || isletter(peek)));
-		end = charPosition;
-		TokenOfTokenizer* tot = new TokenOfTokenizer(s, begin, end);
-		return tot;
-	}
-	
-	begin = charPosition;
-	end = ++charPosition;
-	TokenOfTokenizer* tok = new TokenOfTokenizer(peek, begin, end);
-	peek = ' ';
-	return tok;
+	return Terms(END);
 }
 
-vector<TokenOfTokenizer*> Tokenizer::Tokenize() {
-	vector<TokenOfTokenizer*> tokenVector;
-	TokenOfTokenizer* tot = scan();
-	while(tot->getTag() != END) {
-		tokenVector.push_back(tot);
-		tot = scan();
+vector<Terms> Tokenizer::tokenize() {
+	vector<Terms> tokenVector;
+	Terms tms = scan();
+	while(tms.getTag() != END) {
+		tokenVector.push_back(tms);
+		tms = scan();
 	}
 	return tokenVector;
+}
+
+string Tokenizer::fileToString() {
+	string str;
+	for (;!file.eof(); file.get(peek)){
+		str.append(1, peek);
+	}
+	if(str[0] == ' ') {
+		str = str.substr(1, str.length());
+	}
+	return str;
 }
 
 bool Tokenizer::isdigit(char c) {

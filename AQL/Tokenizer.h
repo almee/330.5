@@ -5,21 +5,27 @@
 #include "Lexer.h"
 using namespace std;
 
-class TokenOfTokenizer {
+class Terms {
 public:
 	string lexeme;
 	int begin;
 	int end;
 	int getTag() { return tag; }
-	TokenOfTokenizer(int t) {
+	Terms(int t) {
 		tag = t;
 	}
-	TokenOfTokenizer(char l, int b, int e) {
+	Terms(char l, int b, int e) {
 		lexeme.append(1,l);
 		begin = b;
 		end = e;
 	}
-	TokenOfTokenizer(string l, int b, int e) {
+	Terms(string l, int b, int e) {
+		lexeme = l;
+		begin = b;
+		end = e;
+	}
+	Terms(int t, string l, int b, int e) {
+		tag = t;
 		lexeme = l;
 		begin = b;
 		end = e;
@@ -33,14 +39,15 @@ public:
 	Tokenizer(string f);
 	~Tokenizer();
 	int getline();
-	TokenOfTokenizer* scan();
-	vector<TokenOfTokenizer*> Tokenize();
+	Terms scan();
+	vector<Terms> tokenize();
+	string fileToString();
 private:
 	char peek;
 	int line;
-	int charPosition;
+	int lastPosition;
+	string fileString;
 	ifstream file;
-	string fileToString();
 protected:
 	bool isdigit(char c);
 	bool isletter(char c);
