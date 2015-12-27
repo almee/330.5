@@ -41,7 +41,7 @@ public:
 	int getline();
 	Terms scan();
 	vector<Terms> tokenize();
-	string fileToString();
+	string getFileString();
 private:
 	char peek;
 	int line;
@@ -49,6 +49,7 @@ private:
 	string fileString;
 	ifstream file;
 protected:
+	string fileToString();
 	bool isdigit(char c);
 	bool isletter(char c);
 };
