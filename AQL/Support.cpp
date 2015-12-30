@@ -45,9 +45,9 @@ vector<Span> Support::getSpansByReg(string &reg) {
 	}
 	return result;
 }
-int Support::getTokenIndexByBegin(int end) {
+int Support::getTokenIndexByBegin(int begin) {
 	for (int i = 0; i < tokenSet.size(); i++) {
-		if (end == tokenSet[i].begin)
+		if (tokenSet[i].begin <= begin && begin < tokenSet[i].end)
 			return i;
 	}
 	return 0;
@@ -55,7 +55,7 @@ int Support::getTokenIndexByBegin(int end) {
 }
 int Support::getTokenIndexByEnd(int end) {
 	for (int i = 0; i < tokenSet.size(); i++) {
-		if (end == tokenSet[i].end)
+		if (tokenSet[i].begin < end && end <= tokenSet[i].end)
 			return i;
 	}
 	return 0;
